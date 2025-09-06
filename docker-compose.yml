@@ -1,0 +1,42 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:15
+    container_name: perf_db
+    restart: always
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: perfdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+    container_name: perf_redis
+    restart: always
+    ports:
+      - "6380:6379"
+      
+
+  api:
+    build: .
+    container_name: perf_api
+    restart: always
+    depends_on:
+      - db
+      - redis
+    environment:
+      DATABASE_URL: postgresql+psycopg2://user:password@db:5432/perfdb
+      REDIS_HOST: redis
+    ports:
+      - "8000:8000"
+      - "8089:8089"  
+    volumes:
+      - .:/app
+
+volumes:
+  postgres_data:
